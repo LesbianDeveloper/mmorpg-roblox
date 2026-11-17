@@ -150,6 +150,12 @@ local function dealDamage(attacker, target, amount)
 	showText(target, tostring(amount), COLORS.Damage)
 end
 
+-- Permite que otros scripts del servidor (enemigos) usen este sistema de daño
+local damageEvent = Instance.new("BindableEvent")
+damageEvent.Name = "DealDamage"
+damageEvent.Parent = game:GetService("ServerStorage")
+damageEvent.Event:Connect(dealDamage)
+
 local function getTargets(character, range, width)
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then return {} end
