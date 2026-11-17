@@ -3,22 +3,87 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
-local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("CombatConfig"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared:WaitForChild("CombatConfig"))
+local Animations = require(Shared:WaitForChild("Animations"))
 local remote = ReplicatedStorage:WaitForChild("CombatAction")
 local player = Players.LocalPlayer
 
--- Esquiva: el impulso se hace en el cliente para que se sienta instantáneo;
--- la invulnerabilidad la da el servidor
+---------------------------------------------------------------- Animaciones
+local tracks = {}
+
+local function getTrack(name)
+	local id = Animations[name]
+	if not id or id == "" then return nil end
+	if tracks[name] then return tracks[name] end
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then return nil end
+	local animation = Instance.new("Animation")
+	animation.AnimationId = "rbxassetid://" .. id
+	tracks[name] = animator:LoadAnimation(animation)
+	return tracks[name]
+end
+
+local function play(name)
+	local track = getTrack(name)
+	if track then track:Play(0.05) end
+end
+
+local function stop(name)
+	local track = tracks[name]
+	if track then track:Stop(0.15) end
+end
+
+---------------------------------------------------------------- Helpers
+local function getCharacter()
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 then return nil end
+	if character:GetAttribute("Stunned") then return nil end
+	return character, humanoid
+end
+
+local function hasStamina(amount)
+	return (player:GetAttribute("Stamina") or 0) >= amount
+end
+
+---------------------------------------------------------------- Acciones
+local lastLight, lastLightCombo, combo = 0, 0, 1
+local function lightAttack()
+	local cfg = Config.Attacks.Light
+	if not getCharacter() then return end
+	if os.clock() - lastLight < cfg.Cooldown or not hasStamina(cfg.Stamina) then return end
+	lastLight = os.clock()
+
+	if os.clock() - lastLightCombo > cfg.ComboReset then combo = 1 end
+	lastLightCombo = os.clock()
+	stop("Block")
+	play("Light" .. combo)
+	combo = combo % #cfg.Damage + 1
+	remote:FireServer("Light")
+end
+
+local lastHeavy = 0
+local function heavyAttack()
+	local cfg = Config.Attacks.Heavy
+	if not getCharacter() then return end
+	if os.clock() - lastHeavy < cfg.Cooldown or not hasStamina(cfg.Stamina) then return end
+	lastHeavy = os.clock()
+	stop("Block")
+	play("Heavy")
+	remote:FireServer("Heavy")
+end
+
 local lastDodge = 0
 local function dodge()
-	local character = player.Character
+	local character, humanoid = getCharacter()
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not root or not humanoid or humanoid.Health <= 0 then return end
-	if character:GetAttribute("Stunned") then return end
-	if os.clock() - lastDodge < Config.Dodge.Cooldown then return end
-	if (player:GetAttribute("Stamina") or 0) < Config.Dodge.Stamina then return end
+	if not root then return end
+	if os.clock() - lastDodge < Config.Dodge.Cooldown or not hasStamina(Config.Dodge.Stamina) then return end
 	lastDodge = os.clock()
+	stop("Block")
+	play("Dodge")
 	remote:FireServer("Dodge")
 
 	-- Si te movés, esquiva en esa dirección; si estás quieto, salta hacia atrás
@@ -38,26 +103,59 @@ local function dodge()
 	end)
 end
 
+local function blockStart()
+	if not getCharacter() then return end
+	play("Block")
+	remote:FireServer("BlockStart")
+end
+
+local function blockEnd()
+	stop("Block")
+	remote:FireServer("BlockEnd")
+end
+
+---------------------------------------------------------------- Input
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		remote:FireServer("Light")
+		lightAttack()
 	elseif input.KeyCode == Enum.KeyCode.E then
-		remote:FireServer("Heavy")
+		heavyAttack()
 	elseif input.KeyCode == Enum.KeyCode.Q then
 		dodge()
 	elseif input.KeyCode == Enum.KeyCode.F then
-		remote:FireServer("BlockStart")
+		blockStart()
 	end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.F then
-		remote:FireServer("BlockEnd")
+		blockEnd()
 	end
 end)
 
--- HUD: barras de vida y estamina
+---------------------------------------------------------------- Personaje
+local function onCharacter(character)
+	table.clear(tracks) -- las animaciones se recargan en cada personaje nuevo
+	character:GetAttributeChangedSignal("Stunned"):Connect(function()
+		if character:GetAttribute("Stunned") then
+			stop("Block")
+			play("Stunned")
+		else
+			stop("Stunned")
+		end
+	end)
+	character:GetAttributeChangedSignal("Blocking"):Connect(function()
+		if not character:GetAttribute("Blocking") then
+			stop("Block") -- por si el servidor te rompe la guardia
+		end
+	end)
+end
+
+player.CharacterAdded:Connect(onCharacter)
+if player.Character then onCharacter(player.Character) end
+
+---------------------------------------------------------------- HUD
 local gui = Instance.new("ScreenGui")
 gui.Name = "HUD"
 gui.ResetOnSpawn = false
