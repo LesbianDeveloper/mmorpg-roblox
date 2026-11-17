@@ -8,11 +8,20 @@ local remote = Instance.new("RemoteEvent")
 remote.Name = "CombatAction"
 remote.Parent = ReplicatedStorage
 
+local COLORS = {
+	Damage = Color3.fromRGB(255, 220, 80),
+	Dodge = Color3.fromRGB(150, 200, 255),
+	Block = Color3.fromRGB(190, 190, 190),
+	Parry = Color3.fromRGB(255, 255, 255),
+	Stun = Color3.fromRGB(255, 150, 50),
+	Break = Color3.fromRGB(255, 70, 70),
+}
+
 local states = {}
 
 local function getState(player)
 	if not states[player] then
-		states[player] = { cooldowns = {}, combo = 1, lastLight = 0, lastStaminaUse = 0 }
+		states[player] = { cooldowns = {}, combo = 1, lastLight = 0, lastStaminaUse = 0, blockStart = 0 }
 	end
 	return states[player]
 end
@@ -42,7 +51,7 @@ local function showText(model, text, color)
 	local head = model:FindFirstChild("Head")
 	if not head then return end
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.new(0, 100, 0, 40)
+	gui.Size = UDim2.new(0, 140, 0, 40)
 	gui.StudsOffset = Vector3.new(math.random(-10, 10) / 10, 2.5, 0)
 	gui.AlwaysOnTop = true
 	local label = Instance.new("TextLabel")
@@ -58,23 +67,89 @@ local function showText(model, text, color)
 	Debris:AddItem(gui, 0.8)
 end
 
-local function dealDamage(target, amount)
+local function stun(model, duration)
+	local token = os.clock()
+	model:SetAttribute("Stunned", true)
+	model:SetAttribute("StunToken", token)
+	showText(model, "ATURDIDO", COLORS.Stun)
+	task.delay(duration, function()
+		-- solo lo libera si no lo volvieron a aturdir mientras tanto
+		if model.Parent and model:GetAttribute("StunToken") == token then
+			model:SetAttribute("Stunned", nil)
+		end
+	end)
+end
+
+local function setBlocking(player, blocking)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+	local state = getState(player)
+	if blocking then
+		character:SetAttribute("Blocking", true)
+		state.blockStart = os.clock()
+		humanoid.WalkSpeed = Config.Block.WalkSpeed
+	else
+		if character:GetAttribute("Blocking") then
+			state.cooldowns.Block = os.clock()
+		end
+		character:SetAttribute("Blocking", nil)
+		humanoid.WalkSpeed = 16
+	end
+end
+
+-- ¿El atacante está delante del defensor?
+local function isFacing(defender, attacker)
+	local dRoot = defender:FindFirstChild("HumanoidRootPart")
+	local aRoot = attacker and attacker:FindFirstChild("HumanoidRootPart")
+	if not dRoot or not aRoot then return false end
+	local toAttacker = (aRoot.Position - dRoot.Position) * Vector3.new(1, 0, 1)
+	if toAttacker.Magnitude < 0.01 then return true end
+	return dRoot.CFrame.LookVector:Dot(toAttacker.Unit) > 0.3
+end
+
+local function dealDamage(attacker, target, amount)
 	local humanoid = target:FindFirstChildOfClass("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then return end
+	amount = math.floor(amount)
+
 	if target:GetAttribute("Invulnerable") then
-		showText(target, "ESQUIVA", Color3.fromRGB(150, 200, 255))
+		showText(target, "ESQUIVA", COLORS.Dodge)
 		return
 	end
-	amount = math.floor(amount)
+
+	local defender = Players:GetPlayerFromCharacter(target)
+	if defender and target:GetAttribute("Blocking") and isFacing(target, attacker) then
+		local cfg = Config.Block
+		local state = getState(defender)
+		if os.clock() - state.blockStart <= cfg.ParryWindow then
+			showText(target, "¡PARRY!", COLORS.Parry)
+			if attacker then
+				stun(attacker, cfg.ParryStun)
+			end
+			return
+		end
+		if trySpendStamina(defender, state, amount * cfg.StaminaPerDamage) then
+			local reduced = math.floor(amount * (1 - cfg.DamageReduction))
+			humanoid:TakeDamage(reduced)
+			showText(target, "BLOQUEO " .. reduced, COLORS.Block)
+			return
+		end
+		-- Sin estamina: guardia rota y daño completo
+		setBlocking(defender, false)
+		defender:SetAttribute("Stamina", 0)
+		showText(target, "¡GUARDIA ROTA!", COLORS.Break)
+		stun(target, cfg.GuardBreakStun)
+	end
+
 	if target:GetAttribute("TrainingDummy") and humanoid.Health - amount < 1 then
-		humanoid.Health = humanoid.MaxHealth -- el muñeco nunca muere
+		humanoid.Health = humanoid.MaxHealth
 	else
 		humanoid:TakeDamage(amount)
 	end
-	showText(target, tostring(amount), Color3.fromRGB(255, 220, 80))
+	showText(target, tostring(amount), COLORS.Damage)
 end
 
--- Devuelve los modelos con Humanoid que están en una caja delante del personaje
 local function getTargets(character, range, width)
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then return {} end
@@ -116,7 +191,7 @@ function handlers.Light(player, state)
 	state.combo = state.combo % #cfg.Damage + 1
 
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
-		dealDamage(target, damage)
+		dealDamage(player.Character, target, damage)
 	end
 end
 
@@ -127,9 +202,9 @@ function handlers.Heavy(player, state)
 	state.cooldowns.Heavy = os.clock()
 
 	task.wait(cfg.Windup)
-	if not isAlive(player) then return end
+	if not isAlive(player) or player.Character:GetAttribute("Stunned") then return end
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
-		dealDamage(target, cfg.Damage * damageMultiplier(player))
+		dealDamage(player.Character, target, cfg.Damage * damageMultiplier(player))
 	end
 end
 
@@ -148,14 +223,31 @@ function handlers.Dodge(player, state)
 	end)
 end
 
+function handlers.BlockStart(player, state)
+	if not isReady(state, "Block", Config.Block.Cooldown) then return end
+	setBlocking(player, true)
+end
+
+function handlers.BlockEnd(player)
+	setBlocking(player, false)
+end
+
 remote.OnServerEvent:Connect(function(player, action)
 	local handler = typeof(action) == "string" and handlers[action]
-	if handler and isAlive(player) then
+	if not handler or not isAlive(player) then return end
+	local character = player.Character
+
+	if action == "BlockEnd" then
 		handler(player, getState(player))
+		return
 	end
+	if character:GetAttribute("Stunned") then return end
+	if action ~= "BlockStart" and character:GetAttribute("Blocking") then
+		setBlocking(player, false) -- atacar o esquivar cancela el bloqueo
+	end
+	handler(player, getState(player))
 end)
 
--- Aplica vida máxima y estamina al aparecer (o al cambiar de raza)
 local function setupCharacter(player)
 	local character = player.Character
 	if not character then return end
@@ -186,7 +278,7 @@ Players.PlayerRemoving:Connect(function(player)
 	states[player] = nil
 end)
 
--- Regeneración de estamina (10 veces por segundo)
+-- Regeneración de estamina (no regenera mientras bloqueás)
 task.spawn(function()
 	while true do
 		local dt = task.wait(0.1)
@@ -194,8 +286,49 @@ task.spawn(function()
 			local stamina = player:GetAttribute("Stamina")
 			local max = player:GetAttribute("MaxStamina")
 			local state = getState(player)
-			if stamina and max and stamina < max and os.clock() - state.lastStaminaUse > Config.RegenDelay then
+			local blocking = player.Character and player.Character:GetAttribute("Blocking")
+			if stamina and max and stamina < max and not blocking
+				and os.clock() - state.lastStaminaUse > Config.RegenDelay then
 				player:SetAttribute("Stamina", math.min(max, stamina + Config.StaminaRegen * dt))
+			end
+		end
+	end
+end)
+
+-- Muñecos que atacan (atributo AttacksPlayers = true) para practicar bloqueo y parry
+local function dummyAttack(dummy)
+	local cfg = Config.DummyAttack
+	local root = dummy:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	-- Aviso: se pone rojo antes de pegar. Esa es tu señal para el parry.
+	local originals = {}
+	for _, part in dummy:GetDescendants() do
+		if part:IsA("BasePart") and part.Transparency < 1 then
+			originals[part] = part.Color
+			part.Color = Color3.fromRGB(255, 60, 60)
+		end
+	end
+	task.wait(cfg.Windup)
+	for part, color in originals do
+		part.Color = color
+	end
+
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		local playerRoot = character and character:FindFirstChild("HumanoidRootPart")
+		if playerRoot and (playerRoot.Position - root.Position).Magnitude <= cfg.Range then
+			dealDamage(dummy, character, cfg.Damage)
+		end
+	end
+end
+
+task.spawn(function()
+	while true do
+		task.wait(Config.DummyAttack.Interval)
+		for _, model in workspace:GetChildren() do
+			if model:GetAttribute("AttacksPlayers") and not model:GetAttribute("Stunned") then
+				task.spawn(dummyAttack, model)
 			end
 		end
 	end

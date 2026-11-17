@@ -15,6 +15,7 @@ local function dodge()
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not root or not humanoid or humanoid.Health <= 0 then return end
+	if character:GetAttribute("Stunned") then return end
 	if os.clock() - lastDodge < Config.Dodge.Cooldown then return end
 	if (player:GetAttribute("Stamina") or 0) < Config.Dodge.Stamina then return end
 	lastDodge = os.clock()
@@ -38,13 +39,21 @@ local function dodge()
 end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end -- ignora si estás escribiendo en el chat
+	if gameProcessed then return end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		remote:FireServer("Light")
 	elseif input.KeyCode == Enum.KeyCode.E then
 		remote:FireServer("Heavy")
 	elseif input.KeyCode == Enum.KeyCode.Q then
 		dodge()
+	elseif input.KeyCode == Enum.KeyCode.F then
+		remote:FireServer("BlockStart")
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.F then
+		remote:FireServer("BlockEnd")
 	end
 end)
 
