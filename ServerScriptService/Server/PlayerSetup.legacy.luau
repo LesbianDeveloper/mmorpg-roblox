@@ -53,6 +53,9 @@ raceRequest.OnServerInvoke = function(player, action, value)
 			PlayerData.set(player, "CharacterCreated", false)
 			PlayerData.set(player, "FreeRollUsed", false)
 			return true, "Creación de personaje reiniciada"
+		elseif action == "devgold" and typeof(value) == "number" then
+			PlayerData.set(player, "Gold", data.Gold + value)
+			return true, "Oro: " .. data.Gold
 		end
 		
 	end

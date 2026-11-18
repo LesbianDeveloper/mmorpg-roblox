@@ -17,6 +17,7 @@ local DEFAULTS = {
 	Shrines = {},   -- [shrineId] = true, santuarios activados
 	CharacterCreated = false, -- ¿ya pasó por la pantalla de creación?
 	FreeRollUsed = false,     -- la tirada de raza gratis (una sola)
+	SoulFlasks = 0, -- frascos de alma comprados (máx. 3)
 }
 
 function PlayerData.load(player)

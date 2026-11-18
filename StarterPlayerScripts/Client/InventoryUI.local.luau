@@ -5,6 +5,9 @@ local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Ite
 local notify = ReplicatedStorage:WaitForChild("Notify")
 local RARITY = UIKit.RARITY
 
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
 local window, content, entry = UIKit.createWindow("Inventory", "Inventario", UDim2.new(0, 440, 0, 420))
 
 local currency = UIKit.label(content, "", UDim2.new(1, 0, 0, 20), UDim2.new(0, 0, 0, 0), 15, Color3.fromRGB(255, 210, 60))
@@ -86,7 +89,8 @@ local function makeSlot(itemId, quantity, order)
 end
 
 local function redraw(snapshot)
-	currency.Text = string.format("Oro: %d     ·     Runas del Destino: %d", snapshot.Gold or 0, snapshot.Runes or 0)
+	currency.Text = string.format("Oro: %d   ·   Runas: %d   ·   Frascos de alma: %d/3",
+		snapshot.Gold or 0, snapshot.Runes or 0, player:GetAttribute("SoulFlasks") or 0)
 
 	for _, child in grid:GetChildren() do
 		if child.Name == "Slot" then child:Destroy() end
@@ -119,6 +123,12 @@ entry.onOpen = function()
 end
 
 notify.OnClientEvent:Connect(function()
+	if window.Visible then
+		UIKit.request("get")
+	end
+end)
+
+player:GetAttributeChangedSignal("SoulFlasks"):Connect(function()
 	if window.Visible then
 		UIKit.request("get")
 	end
