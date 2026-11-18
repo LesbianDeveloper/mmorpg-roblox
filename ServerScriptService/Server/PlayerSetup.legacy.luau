@@ -48,6 +48,10 @@ raceRequest.OnServerInvoke = function(player, action, value)
 		elseif action == "devgive" and typeof(value) == "string" then
 			Rewards.addItem(player, value, 1)
 			return true, "Dado: " .. value
+		elseif action == "devreset" then
+			PlayerData.set(player, "CharacterCreated", false)
+			PlayerData.set(player, "FreeRollUsed", false)
+			return true, "Creación de personaje reiniciada"
 		end
 		
 	end
@@ -71,7 +75,7 @@ local function setupPlayer(player)
 	end
 
 	if not data.Race then
-		RaceService.roll(player, true) -- primera tirada gratis
+		RaceService.setRace(player, "Human") -- provisional; la raza real sale en la creación de personaje
 	end
 	applyStats(player)
 
@@ -99,6 +103,9 @@ local function setupPlayer(player)
 		applyStats(player)
 	end)
 	player:GetAttributeChangedSignal("EquipmentChanged"):Connect(function()
+		applyStats(player)
+	end)
+	player:GetAttributeChangedSignal("Class"):Connect(function()
 		applyStats(player)
 	end)
 

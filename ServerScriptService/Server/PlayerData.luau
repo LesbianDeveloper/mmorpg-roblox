@@ -15,6 +15,8 @@ local DEFAULTS = {
 	Equipment = {}, -- [slot] = itemId
 	Essence = 0,    -- Esencia sin gastar (se pierde al morir)
 	Shrines = {},   -- [shrineId] = true, santuarios activados
+	CharacterCreated = false, -- ¿ya pasó por la pantalla de creación?
+	FreeRollUsed = false,     -- la tirada de raza gratis (una sola)
 }
 
 function PlayerData.load(player)
