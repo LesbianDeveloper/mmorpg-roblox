@@ -12,6 +12,7 @@ local DEFAULTS = {
 	RollsSinceEpic = 0,
 	Gold = 0,
 	Inventory = {}, -- [itemId] = cantidad
+	Equipment = {}, -- [slot] = itemId
 }
 
 function PlayerData.load(player)

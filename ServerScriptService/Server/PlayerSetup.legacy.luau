@@ -45,7 +45,11 @@ raceRequest.OnServerInvoke = function(player, action, value)
 			end
 			local list = #items > 0 and table.concat(items, ", ") or "vacío"
 			return true, "Oro: " .. data.Gold .. " | Runas: " .. data.Runes .. " | Inventario: " .. list
+		elseif action == "devgive" and typeof(value) == "string" then
+			Rewards.addItem(player, value, 1)
+			return true, "Dado: " .. value
 		end
+		
 	end
 
 	return false, "Acción inválida"
@@ -53,7 +57,7 @@ end
 
 local function applyStats(player)
 	local data = PlayerData.get(player)
-	local final = Stats.compute(data.Race, data.Class, data.Level)
+	local final = Stats.compute(data.Race, data.Class, data.Level, data.Equipment)
 	for name, value in final do
 		player:SetAttribute(name, value)
 	end
@@ -92,6 +96,9 @@ local function setupPlayer(player)
 	
 	player:GetAttributeChangedSignal("Level"):Connect(function()
 		level.Value = player:GetAttribute("Level")
+		applyStats(player)
+	end)
+	player:GetAttributeChangedSignal("EquipmentChanged"):Connect(function()
 		applyStats(player)
 	end)
 

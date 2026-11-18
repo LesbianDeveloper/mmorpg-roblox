@@ -17,6 +17,7 @@ return {
 			{ Item = "RustyIron",  Chance = 0.4,  Min = 1, Max = 2 },
 			{ Item = "BoneDust",   Chance = 0.15, Min = 1, Max = 1 },
 			{ Item = "RuneOfFate", Chance = 0.03, Min = 1, Max = 1 },
+			{ Item = "RustySword", Chance = 0.05, Min = 1, Max = 1 },
 		},
 	},
 }

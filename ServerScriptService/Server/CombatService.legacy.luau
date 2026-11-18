@@ -111,6 +111,11 @@ end
 local function dealDamage(attacker, target, amount)
 	local humanoid = target:FindFirstChildOfClass("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then return end
+	local defendingPlayer = Players:GetPlayerFromCharacter(target)
+	if defendingPlayer then
+		local defense = defendingPlayer:GetAttribute("Defense") or 0
+		amount = amount * 100 / (100 + defense)
+	end
 	amount = math.floor(amount)
 
 	if target:GetAttribute("Invulnerable") then
@@ -198,7 +203,7 @@ function handlers.Light(player, state)
 		state.combo = 1
 	end
 	state.lastLight = os.clock()
-	local damage = cfg.Damage[state.combo] * damageMultiplier(player)
+	local damage = (cfg.Damage[state.combo] + (player:GetAttribute("WeaponDamage") or 0)) * damageMultiplier(player)
 	state.combo = state.combo % #cfg.Damage + 1
 
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
@@ -215,7 +220,7 @@ function handlers.Heavy(player, state)
 	task.wait(cfg.Windup)
 	if not isAlive(player) or player.Character:GetAttribute("Stunned") then return end
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
-		dealDamage(player.Character, target, cfg.Damage * damageMultiplier(player))
+		dealDamage(player.Character, target, (cfg.Damage + (player:GetAttribute("WeaponDamage") or 0) * 2) * damageMultiplier(player))
 	end
 end
 
@@ -276,7 +281,13 @@ local function onPlayer(player)
 		setupCharacter(player)
 	end)
 	player:GetAttributeChangedSignal("MaxHealth"):Connect(function()
-		setupCharacter(player)
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		local max = player:GetAttribute("MaxHealth")
+		if humanoid and max and humanoid.MaxHealth > 0 then
+			local ratio = humanoid.Health / humanoid.MaxHealth
+			humanoid.MaxHealth = max
+			humanoid.Health = max * ratio
+		end
 	end)
 	setupCharacter(player)
 end
