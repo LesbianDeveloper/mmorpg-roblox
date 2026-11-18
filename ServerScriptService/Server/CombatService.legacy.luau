@@ -141,6 +141,11 @@ local function dealDamage(attacker, target, amount)
 		showText(target, "¡GUARDIA ROTA!", COLORS.Break)
 		stun(target, cfg.GuardBreakStun)
 	end
+	
+	local attackerPlayer = attacker and Players:GetPlayerFromCharacter(attacker)
+	if attackerPlayer and target:GetAttribute("IsEnemy") then
+		target:SetAttribute("Hit_" .. attackerPlayer.UserId, true)
+	end
 
 	if target:GetAttribute("TrainingDummy") and humanoid.Health - amount < 1 then
 		humanoid.Health = humanoid.MaxHealth

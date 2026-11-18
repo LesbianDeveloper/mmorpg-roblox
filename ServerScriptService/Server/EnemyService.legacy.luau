@@ -6,6 +6,7 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Animations = require(ReplicatedStorage.Shared.Animations)
 local damageEvent = ServerStorage:WaitForChild("DealDamage")
 local templates = ServerStorage:WaitForChild("EnemyTemplates")
+local Rewards = require(script.Parent.Rewards)
 local spawnsFolder = workspace:WaitForChild("EnemySpawns")
 
 local TICK = 0.2 -- cada cuánto "piensa" el enemigo
@@ -91,6 +92,7 @@ local function runSpawn(spawnPart)
 		-- Aparecer
 		local enemy = template:Clone()
 		enemy.Name = data.Name
+		enemy:SetAttribute("IsEnemy", true)
 		local humanoid = enemy:FindFirstChildOfClass("Humanoid")
 		local root = enemy:FindFirstChild("HumanoidRootPart")
 		humanoid.MaxHealth = data.MaxHealth
@@ -173,6 +175,9 @@ local function runSpawn(spawnPart)
 		end
 
 		-- Muerte y reaparición
+		if humanoid.Health <= 0 then
+			Rewards.grantKill(enemy, data)
+		end
 		task.wait(3)
 		enemy:Destroy()
 		task.wait(data.RespawnTime)

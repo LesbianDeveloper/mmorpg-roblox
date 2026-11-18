@@ -4,6 +4,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local RaceService = require(script.Parent.RaceService)
 local Races = require(ReplicatedStorage.Shared.Races)
 local Stats = require(ReplicatedStorage.Shared.Stats)
+local Rewards = require(script.Parent.Rewards)
 
 local RunService = game:GetService("RunService")
 
@@ -21,16 +22,29 @@ raceRequest.OnServerInvoke = function(player, action, value)
 
 	-- Comandos de prueba: SOLO funcionan dentro de Roblox Studio
 	if RunService:IsStudio() then
+		local data = PlayerData.get(player)
 		if action == "devrace" and typeof(value) == "string" then
 			return RaceService.setRace(player, value)
 		elseif action == "devrunes" and typeof(value) == "number" then
-			local data = PlayerData.get(player)
 			PlayerData.set(player, "Runes", data.Runes + value)
 			return true, "Runas: " .. data.Runes
 		elseif action == "devshards" and typeof(value) == "number" then
-			local data = PlayerData.get(player)
 			PlayerData.set(player, "Shards", data.Shards + value)
 			return true, "Esquirlas: " .. data.Shards
+		elseif action == "devlevel" and typeof(value) == "number" then
+			PlayerData.set(player, "XP", 0)
+			PlayerData.set(player, "Level", math.clamp(math.floor(value), 1, 60))
+			return true, "Nivel " .. data.Level
+		elseif action == "devxp" and typeof(value) == "number" then
+			Rewards.addXP(player, value)
+			return true, "Nivel " .. data.Level .. " | XP " .. data.XP
+		elseif action == "devinv" then
+			local items = {}
+			for itemId, quantity in data.Inventory do
+				table.insert(items, itemId .. " x" .. quantity)
+			end
+			local list = #items > 0 and table.concat(items, ", ") or "vacío"
+			return true, "Oro: " .. data.Gold .. " | Runas: " .. data.Runes .. " | Inventario: " .. list
 		end
 	end
 
@@ -73,6 +87,11 @@ local function setupPlayer(player)
 
 	player:GetAttributeChangedSignal("Race"):Connect(function()
 		race.Value = Races.ById[player:GetAttribute("Race")].Name
+		applyStats(player)
+	end)
+	
+	player:GetAttributeChangedSignal("Level"):Connect(function()
+		level.Value = player:GetAttribute("Level")
 		applyStats(player)
 	end)
 

@@ -7,9 +7,11 @@ local profiles = {}
 local DEFAULTS = {
 	Level = 1, XP = 0,
 	Class = "Warrior",
-	Runes = 5,          -- Runas del Destino (5 para testear)
-	Shards = 0,         -- Esquirlas del Destino
-	RollsSinceEpic = 0, -- contador para la garantía de Épico
+	Runes = 5,
+	Shards = 0,
+	RollsSinceEpic = 0,
+	Gold = 0,
+	Inventory = {}, -- [itemId] = cantidad
 }
 
 function PlayerData.load(player)
@@ -22,11 +24,16 @@ function PlayerData.load(player)
 	end
 	data = data or {}
 	for key, value in DEFAULTS do
-		if data[key] == nil then data[key] = value end
+		if data[key] == nil then
+			-- las tablas se copian para que cada jugador tenga la suya
+			data[key] = typeof(value) == "table" and table.clone(value) or value
+		end
 	end
 	profiles[player] = data
 	for key, value in data do
-		player:SetAttribute(key, value) -- espejo para que el cliente pueda leerlo
+		if typeof(value) ~= "table" then
+			player:SetAttribute(key, value) -- espejo para el cliente (las tablas no pueden ser atributos)
+		end
 	end
 	return data
 end
@@ -35,12 +42,13 @@ function PlayerData.get(player)
 	return profiles[player]
 end
 
--- Única forma de modificar datos: actualiza la tabla y el atributo
 function PlayerData.set(player, key, value)
 	local data = profiles[player]
 	if not data then return end
 	data[key] = value
-	player:SetAttribute(key, value)
+	if typeof(value) ~= "table" then
+		player:SetAttribute(key, value)
+	end
 end
 
 function PlayerData.save(player)
