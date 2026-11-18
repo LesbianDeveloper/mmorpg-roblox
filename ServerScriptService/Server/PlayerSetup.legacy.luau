@@ -5,6 +5,7 @@ local RaceService = require(script.Parent.RaceService)
 local Races = require(ReplicatedStorage.Shared.Races)
 local Stats = require(ReplicatedStorage.Shared.Stats)
 local Rewards = require(script.Parent.Rewards)
+local Items = require(ReplicatedStorage.Shared.Items)
 
 local RunService = game:GetService("RunService")
 
@@ -61,7 +62,13 @@ end
 
 local function applyStats(player)
 	local data = PlayerData.get(player)
-	local final = Stats.compute(data.Race, data.Class, data.Level, data.Equipment)
+	local equipment = table.clone(data.Equipment)
+	equipment.Weapon = nil
+	local held = player:GetAttribute("HeldItem")
+	if held and Items[held] and Items[held].Type == "Weapon" then
+		equipment.Weapon = held
+	end
+	local final = Stats.compute(data.Race, data.Class, data.Level, equipment)
 	for name, value in final do
 		player:SetAttribute(name, value)
 	end
@@ -106,6 +113,9 @@ local function setupPlayer(player)
 		applyStats(player)
 	end)
 	player:GetAttributeChangedSignal("Class"):Connect(function()
+		applyStats(player)
+	end)
+	player:GetAttributeChangedSignal("HeldItem"):Connect(function()
 		applyStats(player)
 	end)
 

@@ -14,7 +14,7 @@ UIKit.RARITY = {
 	Legendary = { Name = "Legendario", Order = 5, Color = Color3.fromRGB(255, 150, 40) },
 	Mythic    = { Name = "Mítico",     Order = 6, Color = Color3.fromRGB(255, 60, 60) },
 }
-UIKit.TYPE_NAMES = { Material = "Material", Currency = "Moneda", Weapon = "Arma", Armor = "Armadura" }
+UIKit.TYPE_NAMES = { Material = "Material", Currency = "Moneda", Weapon = "Arma", Armor = "Armadura", Consumable = "Consumible" }
 UIKit.STAT_NAMES = {
 	Strength = "Fuerza", Agility = "Agilidad", Intellect = "Intelecto",
 	Vitality = "Vitalidad", Endurance = "Aguante", Defense = "Defensa", WeaponDamage = "Daño de arma",

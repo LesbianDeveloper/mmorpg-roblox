@@ -40,11 +40,13 @@ footer.TextWrapped = true
 local function makeSlot(itemId, quantity, order)
 	local item = Items[itemId] or { Name = itemId, Type = "Material", Rarity = "Common" }
 	local rarity = RARITY[item.Rarity] or RARITY.Common
+	local usable = item.Type == "Weapon" or item.Type == "Consumable"
+	local wearable = item.Type == "Armor"
 
 	local slot = Instance.new("TextButton")
 	slot.Name = "Slot"
 	slot.Text = ""
-	slot.AutoButtonColor = item.Slot ~= nil
+	slot.AutoButtonColor = usable or wearable
 	slot.LayoutOrder = order
 	slot.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
 	slot.Parent = grid
@@ -59,7 +61,12 @@ local function makeSlot(itemId, quantity, order)
 	slot.MouseEnter:Connect(function()
 		local text = string.format("%s  —  %s · %s", item.Name, UIKit.TYPE_NAMES[item.Type] or item.Type, rarity.Name)
 		if item.Stats then
-			text ..= "\n" .. UIKit.describeStats(item.Stats) .. "   (clic para equipar)"
+			text ..= "\n" .. UIKit.describeStats(item.Stats)
+		end
+		if usable then
+			text ..= "   (clic para poner en la barra rápida)"
+		elseif wearable then
+			text ..= "   (clic para equipar)"
 		end
 		footer.Text = text
 		footer.TextColor3 = rarity.Color
@@ -68,12 +75,14 @@ local function makeSlot(itemId, quantity, order)
 		footer.Text = ""
 	end)
 
-	if item.Slot then
-		slot.MouseButton1Click:Connect(function()
-			footer.Text = ""
+	slot.MouseButton1Click:Connect(function()
+		footer.Text = ""
+		if usable then
+			UIKit.request("hotbar_assign", itemId)
+		elseif wearable then
 			UIKit.request("equip", itemId)
-		end)
-	end
+		end
+	end)
 end
 
 local function redraw(snapshot)

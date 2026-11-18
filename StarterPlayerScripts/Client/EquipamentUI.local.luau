@@ -6,7 +6,6 @@ local Items = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Ite
 local player = Players.LocalPlayer
 
 local SLOTS = {
-	{ Id = "Weapon", Name = "Arma" },
 	{ Id = "Head",   Name = "Cabeza" },
 	{ Id = "Chest",  Name = "Pecho" },
 	{ Id = "Legs",   Name = "Piernas" },

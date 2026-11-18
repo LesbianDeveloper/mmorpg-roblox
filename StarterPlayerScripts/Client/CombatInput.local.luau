@@ -6,6 +6,8 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("CombatConfig"))
 local Animations = require(Shared:WaitForChild("Animations"))
+local Items = require(Shared:WaitForChild("Items"))
+local hotbarAction = ReplicatedStorage:WaitForChild("HotbarAction")
 local remote = ReplicatedStorage:WaitForChild("CombatAction")
 local player = Players.LocalPlayer
 
@@ -118,7 +120,13 @@ end
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		lightAttack()
+		local held = player:GetAttribute("HeldItem")
+		local item = held and Items[held]
+		if item and item.Type == "Consumable" then
+			hotbarAction:FireServer("use")
+		else
+			lightAttack()
+		end
 	elseif input.KeyCode == Enum.KeyCode.E then
 		heavyAttack()
 	elseif input.KeyCode == Enum.KeyCode.Q then

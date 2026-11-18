@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Items = require(ReplicatedStorage.Shared.Items)
 local PlayerData = require(script.Parent.PlayerData)
+local Hotbar = require(script.Parent.Hotbar)
 
 local request = Instance.new("RemoteFunction")
 request.Name = "InventoryRequest"
@@ -12,6 +13,7 @@ local function snapshot(data)
 		Runes = data.Runes,
 		Items = table.clone(data.Inventory),
 		Equipment = table.clone(data.Equipment),
+		Hotbar = table.clone(data.Hotbar or {}),
 	}
 end
 
@@ -22,7 +24,6 @@ local function addToInventory(data, itemId, amount)
 	end
 end
 
--- Avisa a PlayerSetup que recalcule los stats
 local function equipmentChanged(player)
 	player:SetAttribute("EquipmentChanged", os.clock())
 end
@@ -32,11 +33,12 @@ request.OnServerInvoke = function(player, action, value)
 	if not data then return nil end
 
 	if action == "equip" and typeof(value) == "string" then
+		-- Solo armaduras: las armas van en la barra rápida
 		local item = Items[value]
-		if item and item.Slot and (data.Inventory[value] or 0) > 0 then
+		if item and item.Type == "Armor" and item.Slot and (data.Inventory[value] or 0) > 0 then
 			local current = data.Equipment[item.Slot]
 			if current then
-				addToInventory(data, current, 1) -- lo que tenías puesto vuelve al inventario
+				addToInventory(data, current, 1)
 			end
 			addToInventory(data, value, -1)
 			data.Equipment[item.Slot] = value
@@ -50,7 +52,13 @@ request.OnServerInvoke = function(player, action, value)
 			data.Equipment[value] = nil
 			equipmentChanged(player)
 		end
+
+	elseif action == "hotbar_assign" and typeof(value) == "string" then
+		Hotbar.assign(player, value)
+
+	elseif action == "hotbar_clear" and typeof(value) == "number" then
+		Hotbar.clear(player, value)
 	end
 
-	return snapshot(data) -- "get" y cualquier acción devuelven el estado actualizado
+	return snapshot(data)
 end

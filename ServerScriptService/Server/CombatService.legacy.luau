@@ -258,6 +258,7 @@ remote.OnServerEvent:Connect(function(player, action)
 		return
 	end
 	if character:GetAttribute("Stunned") then return end
+	if character:GetAttribute("Drinking") then return end -- bebiendo: no se puede atacar ni esquivar
 	if action ~= "BlockStart" and character:GetAttribute("Blocking") then
 		setBlocking(player, false) -- atacar o esquivar cancela el bloqueo
 	end

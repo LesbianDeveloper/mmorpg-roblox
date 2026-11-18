@@ -1,11 +1,13 @@
-# Diseño v0.6 — Razas, clases y combate
+# Diseño v0.7 — Razas, clases y combate
 
 > La muerte, la progresión, los jefes y las almas están en **muerte-jefes-y-almas.md**.
+> La barra rápida, las armas, el libro de habilidades y las teclas están en **controles-armas-y-habilidades.md**.
 
 ## Principio central
-- **La clase define CÓMO peleás:** rol, habilidades, armas, recurso. **Se elige al empezar el juego.**
+- **El arma define el ataque básico** (cuerpo a cuerpo o a distancia) y sus **efectos pasivos** (quemar, aturdir…).
+- **La clase define tu estilo:** qué armas usás bien, un rasgo pasivo de clase y su **libro de habilidades** activas (estilo WoW). **Se elige al empezar el juego.**
 - **La raza define CON QUÉ VENTAJAS:** bonus pasivos que crecen con la rareza y una habilidad racial. **Se gana con misiones** (o con suerte en una tirada).
-- **El combate base es común a todos:** vida, estamina, esquiva, bloqueo, ataque ligero y pesado. Sobre esa base, cada clase agrega lo suyo.
+- **El combate base es común a todos:** vida, estamina, esquiva, bloqueo, ataque ligero y pesado.
 - Cualquier raza puede ser cualquier clase, salvo las clases exclusivas de raza.
 
 ## Stats
@@ -25,17 +27,22 @@ Fórmula de daño (borrador):
 |---|---|---|
 | Vida | Todos | Al llegar a 0, morís. **No se regenera sola** (solo santuarios y pociones) |
 | Estamina | Todos | Esquivar, bloquear, atacar, correr. Se regenera sola |
-| Recurso de clase | Según la clase | Maná, Furia, Energía, Concentración, Runas, Chi, Furia demoníaca, Esencia de dragón |
+| Recurso de clase | Según la clase | Maná, Furia, Energía, Concentración, Runas, Chi, Furia demoníaca, Esencia de dragón. Lo gastan las habilidades del libro y los ataques a distancia |
 
 ---
 
 ## Clases
 
+### Qué define una clase
+1. **Armas** que usa bien (columna "Armas" de la tabla).
+2. **Rasgo pasivo de clase** (ej. Guerrero: más vida y armadura pesada; Mago: más maná y daño mágico; Sacerdote: sus curaciones rinden más).
+3. **Libro de habilidades** con habilidades activas propias, usadas con teclas estilo WoW (ver controles-armas-y-habilidades.md).
+
 ### Elección
 La clase se elige **al crear el personaje**. Cambiarla después requiere una misión o un ítem especial (a definir).
 
 ### Especializaciones
-Cada clase tiene 1 a 3 **especializaciones** (por ejemplo, Paladín: Protección / Sagrado / Represalia). Se cambian en un santuario o ciudad. Cada especialización tiene su set de 4 habilidades.
+Cada clase tiene 1 a 3 **especializaciones** (por ejemplo, Paladín: Protección / Sagrado / Represalia). Se cambian en un santuario o ciudad. Cada especialización destaca distintas habilidades de su libro.
 
 ### Modelo de acceso
 | Tipo | Cómo se obtiene |
@@ -52,7 +59,7 @@ Regla de balance: **las clases pagas son *sidegrades*, no más fuertes.**
 |---|---|---|---|---|---|---|
 | **Guerrero** | Base | Tanque / Daño | Fuerza | Espada+escudo, armas a dos manos | Furia | Clásico cuerpo a cuerpo; más furia al recibir y hacer daño |
 | **Cazador** | Base | Daño a distancia | Agilidad | Arco, ballesta | Concentración | Mascota domesticable que pelea a su lado; trampas |
-| **Sacerdote** | Base | Sanación / Daño mágico (sombra) | Intelecto | Bastón, varita | Maná | Curaciones y escudos, o daño de sombras a lo largo del tiempo |
+| **Sacerdote** | Base | Sanación / Daño mágico (sombra) | Intelecto | Bastón, varita, maza, tomo | Maná | Curaciones y escudos, o daño de sombras a lo largo del tiempo |
 | **Mago** | Base | Daño a distancia (fuego / escarcha / arcano) | Intelecto | Bastón, varita+tomo | Maná | Hechizos de área, control de masas, frágil |
 | **Pícaro** | Base | Daño cuerpo a cuerpo | Agilidad | Dagas, espada corta | Energía | Sigilo, golpes por la espalda, venenos, combos |
 | **Paladín** | Base | Tanque / Sanación / Daño | Fuerza o Intelecto | Maza, espada+escudo | Maná | Guerrero sagrado con armadura de placas; auras para el grupo |
@@ -151,15 +158,16 @@ En **Arenas PvP clasificatorias**, los bonus pasivos raciales se normalizan (sol
 | **Ángel** | +15% curación y daño sagrado, +5% vida | *Gracia divina*: al morir, revive con 50% de vida (CD 20 min); alas | −10% daño de sombras realizado |
 | **Demonio** | +15% daño, 5% robo de vida | *Forma infernal*: transformación por 15 s | −15% curación recibida de otros jugadores |
 
-Idea abierta: dar a otras razas **pequeñas ventajas situacionales** del estilo de la Ninfa (ej. Jotunn más fuerte en la nieve, Elfo oscuro en cuevas), para que cada raza tenga un estilo de juego propio y el jugador elija según cómo le gusta jugar.
+Idea abierta: dar a otras razas **pequeñas ventajas situacionales** del estilo de la Ninfa (ej. Jotunn más fuerte en la nieve, Elfo oscuro en cuevas).
 
 ---
 
 ## Combate base (común a todas las clases)
-- Ataque ligero (combo de 3) y ataque pesado
-- Esquiva con ventana de invulnerabilidad, que cuesta estamina
-- Bloqueo que gasta estamina por golpe; parry con ventana corta; guardia rota sin estamina
-- 4 habilidades de especialización en las teclas 1–4, más 1 habilidad racial (tecla R)
+- Ataque básico con **clic** según el arma en la mano: combo ligero de 3 (cuerpo a cuerpo) o proyectil (a distancia, gasta recurso y se puede esquivar)
+- Ataque pesado (E)
+- Esquiva (Q) con ventana de invulnerabilidad, que cuesta estamina
+- Bloqueo (F) que gasta estamina por golpe; parry con ventana corta; guardia rota sin estamina
+- Habilidades del libro de clase y habilidad racial: ver controles-armas-y-habilidades.md
 
 ## Arquitectura técnica
 - `ReplicatedStorage/Shared/Races`, `Classes`, `Abilities`, `Enemies`, `Items`, `Recipes`: datos en ModuleScripts.
