@@ -13,6 +13,8 @@ local DEFAULTS = {
 	Gold = 0,
 	Inventory = {}, -- [itemId] = cantidad
 	Equipment = {}, -- [slot] = itemId
+	Essence = 0,    -- Esencia sin gastar (se pierde al morir)
+	Shrines = {},   -- [shrineId] = true, santuarios activados
 }
 
 function PlayerData.load(player)

@@ -14,25 +14,14 @@ local MAX_LEVEL = 60
 local rng = Random.new()
 local Rewards = {}
 
-function Rewards.addXP(player, amount)
+function Rewards.addEssence(player, amount)
 	local data = PlayerData.get(player)
 	if not data then return end
 	local race = Races.ById[data.Race]
 	local bonus = race and race.Bonuses.XPGain or 0 -- Humano: +5%
 	amount = math.floor(amount * (1 + bonus))
-
-	local level, xp = data.Level, data.XP + amount
-	while level < MAX_LEVEL and xp >= Stats.XPForLevel(level) do
-		xp -= Stats.XPForLevel(level)
-		level += 1
-	end
-	if level >= MAX_LEVEL then xp = 0 end
-
-	PlayerData.set(player, "XP", xp)
-	if level ~= data.Level then
-		PlayerData.set(player, "Level", level)
-	end
-	notify:FireClient(player, "+" .. amount .. " XP", "xp")
+	PlayerData.set(player, "Essence", (data.Essence or 0) + amount)
+	notify:FireClient(player, "+" .. amount .. " Esencia", "xp")
 end
 
 function Rewards.addGold(player, amount)
@@ -60,7 +49,7 @@ function Rewards.grantKill(enemy, enemyData)
 		local userId = tonumber(string.match(attributeName, "^Hit_(%d+)$"))
 		local player = userId and Players:GetPlayerByUserId(userId)
 		if player and PlayerData.get(player) then
-			Rewards.addXP(player, enemyData.XP or 0)
+			Rewards.addEssence(player, enemyData.XP or 0)
 			if enemyData.Gold then
 				Rewards.addGold(player, rng:NextInteger(enemyData.Gold[1], enemyData.Gold[2]))
 			end

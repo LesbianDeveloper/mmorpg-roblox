@@ -57,12 +57,16 @@ xpLabel.Parent = xpBack
 
 local function refreshXP()
 	local level = player:GetAttribute("Level") or 1
-	local xp = player:GetAttribute("XP") or 0
+	local essence = player:GetAttribute("Essence") or 0
 	local needed = Stats.XPForLevel(level)
-	xpFill.Size = UDim2.fromScale(math.clamp(xp / needed, 0, 1), 1)
-	xpLabel.Text = string.format("Nivel %d   ·   %d / %d XP", level, xp, needed)
+	xpFill.Size = UDim2.fromScale(math.clamp(essence / needed, 0, 1), 1)
+	if essence >= needed then
+		xpLabel.Text = string.format("Nivel %d   ·   %d Esencia   ·   ¡Podés subir de nivel en un santuario!", level, essence)
+	else
+		xpLabel.Text = string.format("Nivel %d   ·   %d / %d Esencia", level, essence, needed)
+	end
 end
-player:GetAttributeChangedSignal("XP"):Connect(refreshXP)
+player:GetAttributeChangedSignal("Essence"):Connect(refreshXP)
 player:GetAttributeChangedSignal("Level"):Connect(refreshXP)
 refreshXP()
 

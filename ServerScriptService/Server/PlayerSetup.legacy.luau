@@ -36,8 +36,8 @@ raceRequest.OnServerInvoke = function(player, action, value)
 			PlayerData.set(player, "Level", math.clamp(math.floor(value), 1, 60))
 			return true, "Nivel " .. data.Level
 		elseif action == "devxp" and typeof(value) == "number" then
-			Rewards.addXP(player, value)
-			return true, "Nivel " .. data.Level .. " | XP " .. data.XP
+			Rewards.addEssence(player, value)
+			return true, "Esencia: " .. data.Essence
 		elseif action == "devinv" then
 			local items = {}
 			for itemId, quantity in data.Inventory do
