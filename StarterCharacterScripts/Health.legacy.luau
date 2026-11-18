@@ -1,0 +1,2 @@
+-- Vacío a propósito: reemplaza la regeneración de vida de Roblox.
+-- En este juego la vida solo se recupera en santuarios o con pociones.

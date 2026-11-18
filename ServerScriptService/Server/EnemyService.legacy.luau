@@ -6,10 +6,11 @@ local Enemies = require(ReplicatedStorage.Shared.Enemies)
 local Animations = require(ReplicatedStorage.Shared.Animations)
 local damageEvent = ServerStorage:WaitForChild("DealDamage")
 local templates = ServerStorage:WaitForChild("EnemyTemplates")
-local Rewards = require(script.Parent.Rewards)
 local spawnsFolder = workspace:WaitForChild("EnemySpawns")
+local Rewards = require(script.Parent.Rewards)
 
-local TICK = 0.2 -- cada cuánto "piensa" el enemigo
+local TICK = 0.2
+local SAFE_RESPAWN_RADIUS = 40 -- no reaparece si hay un jugador más cerca que esto
 
 local function loadTrack(humanoid, animName)
 	local id = Animations[animName]
@@ -37,6 +38,25 @@ local function flash(model, duration)
 			if part.Parent then part.Color = color end
 		end
 	end)
+end
+
+-- Borra las marcas de quién le pegó (al resetearse no da recompensas viejas)
+local function clearHits(enemy)
+	for name in enemy:GetAttributes() do
+		if string.match(name, "^Hit_") then
+			enemy:SetAttribute(name, nil)
+		end
+	end
+end
+
+local function isPlayerNear(position, radius)
+	for _, player in Players:GetPlayers() do
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root and (root.Position - position).Magnitude <= radius then
+			return true
+		end
+	end
+	return false
 end
 
 local function hasLineOfSight(enemy, fromPart, toPart)
@@ -100,7 +120,7 @@ local function runSpawn(spawnPart)
 		humanoid.WalkSpeed = data.WalkSpeed
 		enemy:PivotTo(spawnPart.CFrame + Vector3.new(0, 1, 0))
 		enemy.Parent = workspace
-		root:SetNetworkOwner(nil) -- el servidor controla su movimiento
+		root:SetNetworkOwner(nil)
 
 		local tracks = {}
 		for _, attack in data.Attacks do
@@ -126,7 +146,6 @@ local function runSpawn(spawnPart)
 			local distanceFromHome = (root.Position - home).Magnitude
 
 			if returning then
-				-- Volviendo a casa: inmune e ignora jugadores
 				if distanceFromHome < 5 then
 					returning = false
 					enemy:SetAttribute("Invulnerable", nil)
@@ -140,17 +159,17 @@ local function runSpawn(spawnPart)
 				local lost = not target.Parent or not targetHumanoid or targetHumanoid.Health <= 0 or not targetRoot
 
 				if lost or distanceFromHome > data.LeashRange then
-					-- Perdió al objetivo o se alejó demasiado: vuelve y se cura
+					-- Perdió al objetivo o se alejó demasiado: vuelve, se cura y olvida quién le pegó
 					target = nil
 					returning = true
 					enemy:SetAttribute("Invulnerable", true)
 					humanoid.Health = humanoid.MaxHealth
+					clearHits(enemy)
 					humanoid:MoveTo(home)
 				else
 					local distance = (targetRoot.Position - root.Position).Magnitude
 					local attack = chooseAttack(data, cooldowns, distance)
 					if attack then
-						-- Atacar: frena, mira al objetivo, avisa en rojo y golpea
 						cooldowns[attack.Name] = os.clock()
 						humanoid:MoveTo(root.Position)
 						faceTowards(root, targetRoot.Position)
@@ -163,7 +182,7 @@ local function runSpawn(spawnPart)
 								damageEvent:Fire(enemy, target, attack.Damage)
 							end
 						end
-						task.wait(0.3) -- recuperación tras atacar
+						task.wait(0.3)
 					else
 						humanoid:MoveTo(targetRoot.Position)
 					end
@@ -174,13 +193,18 @@ local function runSpawn(spawnPart)
 			end
 		end
 
-		-- Muerte y reaparición
+		-- Muerte
 		if humanoid.Health <= 0 then
 			Rewards.grantKill(enemy, data)
 		end
 		task.wait(3)
 		enemy:Destroy()
+
+		-- Reaparición: espera su tiempo y, además, a que no haya jugadores cerca
 		task.wait(data.RespawnTime)
+		while isPlayerNear(spawnPart.Position, SAFE_RESPAWN_RADIUS) do
+			task.wait(1)
+		end
 	end
 end
 

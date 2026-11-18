@@ -1,4 +1,6 @@
-# Diseño v0.4 — Razas, clases, combate y muerte
+# Diseño v0.6 — Razas, clases y combate
+
+> La muerte, la progresión, los jefes y las almas están en **muerte-jefes-y-almas.md**.
 
 ## Principio central
 - **La clase define CÓMO peleás:** rol, habilidades, armas, recurso. **Se elige al empezar el juego.**
@@ -21,43 +23,9 @@ Fórmula de daño (borrador):
 ## Recursos
 | Recurso | Quién | Para qué |
 |---|---|---|
-| Vida | Todos | Al llegar a 0, morís |
-| Estamina | Todos | Esquivar, bloquear, atacar, correr |
+| Vida | Todos | Al llegar a 0, morís. **No se regenera sola** (solo santuarios y pociones) |
+| Estamina | Todos | Esquivar, bloquear, atacar, correr. Se regenera sola |
 | Recurso de clase | Según la clase | Maná, Furia, Energía, Concentración, Runas, Chi, Furia demoníaca, Esencia de dragón |
-
----
-
-## Sistema de muerte y progresión (estilo Dark Souls) — DECIDIDO: opción A
-
-### Esencia (reemplaza a la XP)
-- Matar enemigos da **Esencia**. **No se sube de nivel automáticamente.**
-- La Esencia se **gasta en un Santuario** para subir de nivel. El costo de cada nivel sigue la curva `XPForLevel(nivel)`.
-- Lo ya gastado (niveles, stats, habilidades, mejoras) **está a salvo para siempre**.
-
-### Qué se pierde al morir
-- La **Esencia sin gastar**
-- El **oro** que llevás encima
-- Los **materiales** que no guardaste en un banco o almacén
-
-El equipo puesto **no** se pierde (salvo zonas de alto riesgo, a definir).
-
-### El Remanente
-1. Al morir, todo lo perdido queda en un **Remanente** en el lugar exacto donde caíste.
-2. Reaparecés en el último **Santuario** activado.
-3. Si llegás al Remanente y lo tocás, **recuperás todo**.
-4. Si **volvés a morir antes de recuperarlo**, el Remanente viejo se pierde **para siempre** y queda uno nuevo.
-5. El Remanente **queda guardado** (DataStore) aunque salgas del juego o cambies de servidor. Solo lo ve su dueño.
-
-### Santuarios
-- Puntos de descanso repartidos por el mundo; se activan al tocarlos por primera vez.
-- Al descansar: vida y estamina llenas, pociones recargadas, **los enemigos comunes de la zona reaparecen**.
-- Ahí se gasta la Esencia para subir de nivel y, más adelante, se cambia la especialización.
-- Viaje rápido entre santuarios activados (a definir).
-
-### Extras a considerar
-- **Zonas seguras / zonas peligrosas** (idea de Albion): en zonas de alto riesgo, otros jugadores pueden saquear parte de tu equipo.
-- **Banco o almacén** en ciudades y santuarios grandes, para guardar materiales y oro a salvo.
-- **Consumible raro** que protege el Remanente una muerte extra.
 
 ---
 
@@ -109,7 +77,7 @@ Total: 17 clases. Primero 3 base (Guerrero, Mago, Sacerdote); el resto por actua
 ### Cómo se consigue una raza
 **Camino principal: misiones de raza.** Cada raza (salvo Humano) tiene un **NPC propio** en el mundo, en su bioma o lugar característico. Hablando con él y completando su **cadena de misiones** obtenés esa raza. Cuanto más rara la raza, más larga y difícil es su cadena.
 
-**Camino secundario: tiradas.** Las Runas del Destino siguen existiendo como apuesta: una tirada puede darte cualquier raza, pero lo bueno es muy improbable. **No hay pity ni esquirlas:** si no tenés suerte, el camino es la misión.
+**Camino secundario: tiradas.** Las Runas del Destino siguen existiendo como apuesta: una tirada puede darte cualquier raza, pero lo bueno es muy improbable. **No hay pity ni esquirlas.**
 
 Reglas:
 - La **primera tirada es gratis** al crear el personaje (casi siempre sale Humano).
@@ -174,7 +142,7 @@ En **Arenas PvP clasificatorias**, los bonus pasivos raciales se normalizan (sol
 | **Orco** | +6% daño cuerpo a cuerpo, +3% vida | *Grito de guerra*: genera recurso de clase y +10% daño por 6 s | — |
 | **Elfo silvano** | +8% daño a distancia, +5% velocidad | *Paso del bosque*: esquiva larga sin coste de estamina | — |
 | **Jotunn** | +10% vida, +6% daño cc, resistencia al frío | *Furia del invierno*: crece de tamaño 10 s, sus golpes ralentizan | Hitbox más grande |
-| **Ninfa** | +10% curación realizada, regenera vida cerca de agua o bosque | *Bendición del manantial*: curación en área | — |
+| **Ninfa** | +10% curación realizada, **regenera vida cerca de agua o bosque** | *Bendición del manantial*: curación en área | Única regeneración pasiva del juego (a propósito) |
 | **Elfo oscuro** | +10% daño mágico, +6% resistencia a sombras | *Velo*: invisibilidad 4 s | — |
 | **Gorgona** | +8% agilidad, +8% daño de veneno, inmune a petrificación | *Mirada de piedra*: petrifica 2 s (a jefes solo los ralentiza) | — |
 | **Æsir / Vanir** | +5% vida y, según el linaje: Æsir +10% daño físico / Vanir +10% daño mágico y curación | *Llamado del Valhalla*: +10% daño al grupo por 10 s | El linaje se decide en la misión |
@@ -182,6 +150,8 @@ En **Arenas PvP clasificatorias**, los bonus pasivos raciales se normalizan (sol
 | **Dracónido** | +12% vida, resistencia al fuego, planeo | *Aliento de fuego*: cono de daño | Única raza que puede ser **Evocador** |
 | **Ángel** | +15% curación y daño sagrado, +5% vida | *Gracia divina*: al morir, revive con 50% de vida (CD 20 min); alas | −10% daño de sombras realizado |
 | **Demonio** | +15% daño, 5% robo de vida | *Forma infernal*: transformación por 15 s | −15% curación recibida de otros jugadores |
+
+Idea abierta: dar a otras razas **pequeñas ventajas situacionales** del estilo de la Ninfa (ej. Jotunn más fuerte en la nieve, Elfo oscuro en cuevas), para que cada raza tenga un estilo de juego propio y el jugador elija según cómo le gusta jugar.
 
 ---
 
@@ -192,9 +162,7 @@ En **Arenas PvP clasificatorias**, los bonus pasivos raciales se normalizan (sol
 - 4 habilidades de especialización en las teclas 1–4, más 1 habilidad racial (tecla R)
 
 ## Arquitectura técnica
-- `ReplicatedStorage/Shared/Races`, `Classes`, `Abilities`, `Enemies`, `Items`: datos en ModuleScripts.
-- `RaceService`: tiradas y asignación de raza en el servidor. **Pendiente:** quitar esquirlas y garantía de Épico; agregar razas desbloqueadas (`UnlockedRaces`).
-- `Rewards`: **pendiente** cambiar XP por Esencia (sin subida automática de nivel).
+- `ReplicatedStorage/Shared/Races`, `Classes`, `Abilities`, `Enemies`, `Items`, `Recipes`: datos en ModuleScripts.
+- `RaceService`: tiradas y asignación de raza. **Pendiente:** quitar esquirlas y garantía de Épico; agregar razas desbloqueadas (`UnlockedRaces`).
 - `QuestService` (futuro): cadenas de misiones con pasos, progreso guardado y recompensas.
-- `DeathService` (futuro): Remanentes, santuarios, gasto de Esencia y respawn.
 - Clases premium: Game Pass verificado en el servidor con `MarketplaceService:UserOwnsGamePassAsync`.
