@@ -1,0 +1,40 @@
+-- Habilidades de cada clase, en orden de tecla (Z, X, V, T).
+-- Implemented = ya funciona. Las demás aparecen como "Próximamente".
+return {
+	Warrior = {
+		{ Id = "BrutalStrike", Name = "Golpe brutal", Key = "Z", Level = 1, Cost = 0, Cooldown = 5,
+			Animation = "Heavy", Implemented = true,
+			Description = "Golpe fuerte cuerpo a cuerpo con el daño de tu arma. Genera mucha Furia." },
+		{ Id = "Charge", Name = "Carga", Key = "X", Level = 3, Cost = 20, Cooldown = 12,
+			Animation = "Light1", Implemented = true,
+			Description = "Saltás hacia el enemigo más cercano frente a vos y lo aturdís 1 s." },
+		{ Id = "ChallengingShout", Name = "Grito desafiante", Key = "V", Level = 6, Cost = 15, Cooldown = 20,
+			Description = "Los enemigos cercanos te atacan a vos." },
+		{ Id = "Whirlwind", Name = "Torbellino", Key = "T", Level = 10, Cost = 40, Cooldown = 10,
+			Description = "Girás golpeando a todos a tu alrededor." },
+	},
+	Mage = {
+		{ Id = "Fireball", Name = "Bola de fuego", Key = "Z", Level = 1, Cost = 15, Cooldown = 1.5,
+			Animation = "Light1", Implemented = true,
+			Description = "Proyectil hacia donde apuntás. Quema durante 3 s. Se puede esquivar." },
+		{ Id = "FrostNova", Name = "Nova de escarcha", Key = "X", Level = 3, Cost = 30, Cooldown = 15,
+			Animation = "Light3", Implemented = true,
+			Description = "Congela 2 s a los enemigos a tu alrededor." },
+		{ Id = "Blink", Name = "Parpadeo", Key = "V", Level = 6, Cost = 20, Cooldown = 12,
+			Description = "Te teletransportás una corta distancia hacia adelante." },
+		{ Id = "Meteor", Name = "Meteoro", Key = "T", Level = 10, Cost = 60, Cooldown = 25,
+			Description = "Tras una espera, cae un meteoro con gran daño en área." },
+	},
+	Priest = {
+		{ Id = "Heal", Name = "Curación", Key = "Z", Level = 1, Cost = 30, Cooldown = 10,
+			Animation = "Light3", Implemented = true,
+			Description = "Curás al jugador que apuntás, o a vos si no apuntás a nadie." },
+		{ Id = "Smite", Name = "Castigo sagrado", Key = "X", Level = 3, Cost = 15, Cooldown = 3,
+			Animation = "Light2", Implemented = true,
+			Description = "Rayo de luz instantáneo hacia donde apuntás." },
+		{ Id = "HolyShield", Name = "Escudo sagrado", Key = "V", Level = 6, Cost = 35, Cooldown = 20,
+			Description = "Absorbe daño durante unos segundos." },
+		{ Id = "ShadowWord", Name = "Palabra de sombra", Key = "T", Level = 10, Cost = 25, Cooldown = 8,
+			Description = "Daño de sombras continuo durante 8 s." },
+	},
+}

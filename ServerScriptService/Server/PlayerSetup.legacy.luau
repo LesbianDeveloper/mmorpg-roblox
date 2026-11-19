@@ -56,6 +56,9 @@ raceRequest.OnServerInvoke = function(player, action, value)
 		elseif action == "devgold" and typeof(value) == "number" then
 			PlayerData.set(player, "Gold", data.Gold + value)
 			return true, "Oro: " .. data.Gold
+		elseif action == "devclass" and typeof(value) == "string" and table.find({ "Warrior", "Mage", "Priest" }, value) then
+			PlayerData.set(player, "Class", value)
+			return true, "Clase: " .. value
 		end
 		
 	end

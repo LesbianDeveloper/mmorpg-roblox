@@ -6,6 +6,7 @@ local UIKit = require(script.Parent:WaitForChild("UIKit"))
 local MENU = {
 	{ Window = "Inventory", Icon = "🎒", Key = Enum.KeyCode.B, Tooltip = "Inventario (B)" },
 	{ Window = "Equipment", Icon = "⚔️", Key = Enum.KeyCode.C, Tooltip = "Equipo (C)" },
+	{ Window = "Spellbook", Icon = "📖", Key = Enum.KeyCode.K, Tooltip = "Habilidades (K)" },
 }
 
 local BUTTON_SIZE = 52

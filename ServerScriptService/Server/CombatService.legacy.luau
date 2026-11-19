@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
 local Config = require(ReplicatedStorage.Shared.CombatConfig)
 local Races = require(ReplicatedStorage.Shared.Races)
+local Resources = require(script.Parent.Resources)
 
 local remote = Instance.new("RemoteEvent")
 remote.Name = "CombatAction"
@@ -208,6 +209,7 @@ function handlers.Light(player, state)
 
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
 		dealDamage(player.Character, target, damage)
+		Resources.onHit(player)
 	end
 end
 
@@ -221,6 +223,7 @@ function handlers.Heavy(player, state)
 	if not isAlive(player) or player.Character:GetAttribute("Stunned") then return end
 	for _, target in getTargets(player.Character, cfg.Range, cfg.Width) do
 		dealDamage(player.Character, target, (cfg.Damage + (player:GetAttribute("WeaponDamage") or 0) * 2) * damageMultiplier(player))
+		Resources.onHit(player)
 	end
 end
 
