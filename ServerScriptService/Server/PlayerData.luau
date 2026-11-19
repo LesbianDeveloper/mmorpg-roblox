@@ -18,6 +18,8 @@ local DEFAULTS = {
 	CharacterCreated = false, -- ¿ya pasó por la pantalla de creación?
 	FreeRollUsed = false,     -- la tirada de raza gratis (una sola)
 	SoulFlasks = 0, -- frascos de alma comprados (máx. 3)
+	Souls = {},          -- lista de almas: { Boss = "SkeletonKing", Essence = 0 }
+	BossCooldowns = {},  -- [bossId] = momento (os.time) en que se puede volver a pelear
 }
 
 function PlayerData.load(player)

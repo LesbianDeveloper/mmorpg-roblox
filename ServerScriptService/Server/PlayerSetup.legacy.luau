@@ -59,6 +59,17 @@ raceRequest.OnServerInvoke = function(player, action, value)
 		elseif action == "devclass" and typeof(value) == "string" and table.find({ "Warrior", "Mage", "Priest" }, value) then
 			PlayerData.set(player, "Class", value)
 			return true, "Clase: " .. value
+		elseif action == "devbossreset" then
+			data.BossCooldowns = {}
+			return true, "Tiempos de espera de jefes reiniciados"
+		elseif action == "devbosskill" then
+			for _, model in workspace:GetChildren() do
+				local humanoid = model:GetAttribute("IsBoss") and model:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid.Health = 0
+				end
+			end
+			return true, "Jefe derrotado"
 		end
 		
 	end
