@@ -25,7 +25,7 @@ return {
 		Soul = {
 			Name = "Alma del Rey Esqueleto",
 			Capacity = 1500,      -- Esencia máxima que puede guardar
-			BaseChance = 1.0,    -- 10% (para probar podés ponerlo en 1)
+			BaseChance = 0.10,    -- 10% (para probar podés ponerlo en 1)
 			LevelPenalty = 0.85,  -- ×0,85 por cada nivel por encima del recomendado
 			MinChance = 0.01,
 		},
